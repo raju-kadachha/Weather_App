@@ -1,0 +1,25 @@
+# Node modules
+node_modules/
+
+# Tailwind build output
+dist/
+build/
+src/style.css
+public/style.css
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# VS Code
+.vscode/
