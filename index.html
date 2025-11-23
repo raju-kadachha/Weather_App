@@ -3,14 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Weather Dashboard</title>
     <link href="./src/output.css" rel="stylesheet" />
   </head>
-  <body>
-    <h1
-      class="text-2xl font-bold text-center border-2 bg-blue-600 p-1 text-white"
-    >
-      WEATHER DASHBOARD🌥️
-    </h1>
+
+  <body class="bg-gray-100 text-gray-800">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white text-center py-3 shadow">
+      <h1 class="text-3xl font-bold">WEATHER DASHBOARD 🌥️</h1>
+    </header>
+
+    <main class="max-w-4xl mx-auto mt-6 p-4">
+      <!-- Search UI card -->
+      <section
+        class="bg-sky-200 text-gray-900 p-5 rounded-lg shadow-md space-y-6"
+      >
+        <!-- Search Form -->
+        <form class="flex items-end gap-4 flex-wrap">
+          <!-- City Input -->
+          <div class="flex flex-col gap-1 flex-1 min-w-[250px]">
+            <label for="search" class="text-sm font-semibold"
+              >Search City</label
+            >
+            <input
+              id="search"
+              type="text"
+              placeholder="Enter city name"
+              class="border p-2 bg-white rounded focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          </div>
+
+          <!-- Search Button -->
+          <button
+            type="button"
+            id="searchBtn"
+            class="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          >
+            <span>Search</span>
+            <img src="img/transparency.png" alt="Search" class="w-5 h-5" />
+          </button>
+
+          <!-- Current Location Button -->
+          <button
+            type="button"
+            id="locationBtn"
+            class="bg-green-500 text-white px-3 py-2 rounded flex items-center gap-2 hover:bg-green-600 transition"
+          >
+            <span>Current Location</span>
+            <img class="w-4 h-4" src="img/placeholder.png" alt="Location" />
+          </button>
+        </form>
+
+        <!-- Recently Searched Dropdown -->
+        <div class="flex flex-col">
+          <label class="mb-2 font-semibold text-sm">Recently Searched</label>
+
+          <select id="recentCities" class="border p-2 rounded bg-white shadow">
+            <option selected disabled>No recent cities</option>
+          </select>
+        </div>
+      </section>
+      <section></section>
+    </main>
+
+    <script src="./src/js/app.js"></script>
   </body>
 </html>
