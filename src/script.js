@@ -22,6 +22,7 @@ async function fetchWeather(city) {
     }
 
     renderWeatherCard(data);
+    renderForecastCards(data)
 
     searchBox.value = "";
   }
@@ -114,3 +115,11 @@ function renderWeatherCard(data) {
 }
 
 
+function renderForecastCards(data) {
+  const forecast = data.forecast.forecastday;
+
+  //Get Multiple Days Forecast
+  for (let i = 1; i < forecast.length; i++) {
+    console.log(forecast[i]);
+  }
+}
