@@ -118,8 +118,25 @@ function renderWeatherCard(data) {
 function renderForecastCards(data) {
   const forecast = data.forecast.forecastday;
 
-  //Get Multiple Days Forecast
+  const container = document.getElementById("forecastSection");
+  container.innerHTML = "";
+
   for (let i = 1; i < forecast.length; i++) {
-    console.log(forecast[i]);
+    const day = forecast[i];
+
+    const card = `
+      <div class="bg-white rounded-xl shadow p-4 text-center border border-gray-200">
+        <h3 class="text-lg font-semibold mb-1">${day.date}</h3>
+        <img src="${day.day.condition.icon}" class="w-14 mx-auto" />
+        <p class="text-gray-700 mt-1">${day.day.condition.text}</p>
+
+        <div class="mt-2 text-base font-bold">
+          <span class="text-red-500 mr-2">↑ ${day.day.maxtemp_c}°C</span>
+          <span class="text-blue-600">↓ ${day.day.mintemp_c}°C</span>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML += card;
   }
 }
