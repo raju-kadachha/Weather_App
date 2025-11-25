@@ -7,29 +7,33 @@
     <link href="./src/output.css" rel="stylesheet" />
   </head>
 
-  <body class="bg- text-gray-800">
+  <body class="bg-gray-50 text-gray-800">
     <!-- Header -->
-    <header class="bg-blue-600 text-white text-center py-3 shadow">
-      <h1 class="text-3xl font-bold">WEATHER DASHBOARD 🌥️</h1>
+    <header class="bg-white shadow-md py-4">
+      <h1 class="text-2xl font-bold text-blue-700 text-center tracking-wide">
+        WeatherNow
+      </h1>
     </header>
 
-    <main class="max-w-4xl mx-auto mt-6 p-4">
+    <main
+      class="flex flex-col justify-center align-middle max-w-xl mx-auto mt-6 p-4"
+    >
       <!-- Search UI card -->
       <section
-        class="bg-sky-200 text-gray-900 p-5 rounded-lg shadow-md space-y-6"
+        class="bg-white p-5 rounded-2xl shadow-md border border-gray-200 space-y-5"
       >
         <!-- Search Form -->
-        <form class="flex items-end gap-4 flex-wrap">
+        <form class="flex items-end gap-3 flex-wrap">
           <!-- City Input -->
-          <div class="flex flex-col gap-1 flex-1 min-w-[250px]">
-            <label for="search" class="text-sm font-semibold"
+          <div class="flex flex-col gap-1 flex-1 min-w-[220px]">
+            <label for="search" class="text-sm font-medium text-gray-700"
               >Search City</label
             >
             <input
               id="search"
               type="text"
               placeholder="Enter city name"
-              class="border p-2 bg-white rounded focus:ring-2 focus:ring-blue-400 outline-none"
+              class="border border-gray-300 p-2 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none text-sm"
             />
           </div>
 
@@ -37,35 +41,38 @@
           <button
             type="button"
             id="searchBtn"
-            class="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            class="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition"
           >
             <span>Search</span>
-            <img src="img/transparency.png" alt="Search" class="w-5 h-5" />
+            <img src="img/transparency.png" alt="Search" class="w-4 h-4" />
           </button>
 
           <!-- Current Location Button -->
           <button
             type="button"
             id="locationBtn"
-            class="bg-green-500 text-white px-3 py-2 rounded flex items-center gap-2 hover:bg-green-600 transition"
+            class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
           >
-            <span>Current Location</span>
+            <span>Location</span>
             <img class="w-4 h-4" src="img/placeholder.png" alt="Location" />
           </button>
         </form>
 
         <!-- Recently Searched Dropdown -->
-        <div class="flex flex-col">
-          <label class="mb-2 font-semibold text-sm">Recently Searched</label>
+        <div class="flex flex-col gap-1">
+          <label id="recentCities" class="font-medium text-sm text-gray-700"
+            >Recently Searched</label
+          >
 
-          <select id="recentCities" class="border p-2 rounded bg-white shadow">
+          <select
+            id="recentCities"
+            class="border border-gray-300 p-2 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+          >
             <option selected disabled>No recent cities</option>
           </select>
         </div>
       </section>
-      <section id="todayWeather"></section>
     </main>
-
     <script src="src/script.js"></script>
   </body>
 </html>
