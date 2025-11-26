@@ -6,7 +6,7 @@ document.getElementById("searchBtn").addEventListener("click", () => { fetchWeat
 document.getElementById("locationBtn").addEventListener("click", async () => {
   //using lat and  lon we are fetching data
   getCurrentCity()
-})
+});
 
 //MAIN Function
 async function fetchWeather(city) {
@@ -17,20 +17,18 @@ async function fetchWeather(city) {
     let data = await rowData.json();
 
     if (data.error) {
-      alert(data.error.message);   // e.g., No matching location found
-      return;
+      alert(data.error.message);   // No matching location found
+      return null;
     }
-
     renderWeatherCard(data);
     renderForecastCards(data)
-
+    addRecent(searchBox.value.trim());
     searchBox.value = "";
   }
   catch (e) {
     console.log("Not Able to get Data.\nPlease, check your Internet.")
   }
 }
-
 
 //Fetch Current Location City Name
 async function getCurrentCity() {
@@ -56,7 +54,8 @@ function renderWeatherCard(data) {
     current
   } = data;
   const html = `
-    <div class="max-w-md mx-auto mt-6 p-6 bg-white rounded-2xl shadow-md border border-gray-200">
+    <div class="max-w-md mx-auto mt-6 p-6 bg-white rounded-2xl shadow-md border border-gray-200 
+            animate-[fadeInUp_0.3s_ease-out]">
       
       <!-- Header -->
       <div class="flex items-center justify-between mb-4">
@@ -102,7 +101,8 @@ function renderWeatherCard(data) {
       </div>
 
       <!-- Extra Info -->
-      <div class="mt-4 p-4 bg-gray-100 rounded-xl text-sm space-y-1">
+      <div class="mt-4 p-4 bg-gray-100 rounded-xl text-sm space-y-1
+     shadow-inner shadow-gray-300/70 border border-gray-200">
         <p><strong>Dew Point:</strong> ${current.dewpoint_c}°C</p>
         <p><strong>Wind Gust:</strong> ${current.gust_kph} km/h</p>
         <p><strong>UV Index:</strong> ${current.uv}</p>
@@ -114,7 +114,6 @@ function renderWeatherCard(data) {
   document.getElementById("todayWeather").innerHTML = html;
 }
 
-
 function renderForecastCards(data) {
   const forecast = data.forecast.forecastday;
 
@@ -125,7 +124,8 @@ function renderForecastCards(data) {
     const day = forecast[i];
 
     const card = `
-      <div class="bg-white rounded-xl shadow p-4 text-center border border-gray-200">
+      <div class="bg-white rounded-xl shadow p-4 text-center border border-gray-200
+     transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-400">
         <h3 class="text-lg font-semibold mb-1">${day.date}</h3>
         <img src="${day.day.condition.icon}" class="w-14 mx-auto" />
         <p class="text-gray-700 mt-1">${day.day.condition.text}</p>
@@ -136,7 +136,37 @@ function renderForecastCards(data) {
         </div>
       </div>
     `;
-
     container.innerHTML += card;
   }
+}
+
+let recentCities = [];
+// Toggle dropdown visibility
+document.getElementById("recentToggle").addEventListener("click", () => {
+  document.getElementById("recentList").classList.toggle("hidden");
+});
+// Add city to dropdown
+function addRecent(city) {
+  if (city === "") return; //return if input box is empty
+
+  if (!recentCities.includes(city)) {
+    recentCities.unshift(city);
+  }
+
+  // show box if not empty
+  document.getElementById("recentBox").classList.remove("hidden");
+
+  // Render dropdown
+  const list = document.getElementById("recentList");
+  list.innerHTML = "";
+  recentCities.forEach(c => {
+    let li = document.createElement("li");
+    li.textContent = c;
+    li.className = "p-2 hover:bg-blue-100 cursor-pointer";
+    li.onclick = () => {
+      fetchWeather(c);               // your existing function
+      list.classList.add("hidden");  // close dropdown
+    };
+    list.appendChild(li);
+  });
 }
