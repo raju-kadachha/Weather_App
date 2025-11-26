@@ -49,10 +49,7 @@ async function getCurrentCity() {
 }
 
 function renderWeatherCard(data) {
-  const {
-    location,
-    current
-  } = data;
+  const { location, current } = data;
   const html = `
     <div class="max-w-md mx-auto mt-6 p-6 bg-white rounded-2xl shadow-md border border-gray-200 
             animate-[fadeInUp_0.3s_ease-out]">
@@ -63,22 +60,26 @@ function renderWeatherCard(data) {
           <h2 class="text-xl font-bold">${location.name}, ${location.region}</h2>
           <p class="text-sm text-gray-600">Local: ${location.localtime}</p>
         </div>
-
-        <img src="${current.condition.icon}"
-             alt="${current.condition.text}"
-             class="w-14 h-14" />
+        <img src="${current.condition.icon}" alt="${current.condition.text}" class="w-14 h-14" />
       </div>
 
-      <!-- Temperature -->
+      <!-- Temperature with toggle -->
       <div class="text-center mb-6">
-        <p class="text-5xl font-bold text-blue-700">${current.temp_c}°C</p>
+        <div class="flex items-center justify-center gap-4 mb-2">
+          <p id="temp" class="text-5xl font-bold text-blue-700">${current.temp_c}°C</p>
+          
+          <!-- Toggle Button -->
+          <button id="toggleTemp"
+            class="px-4 py-2 pr-5 bg-gray-200 rounded-full text-sm font-medium shadow-inner shadow-gray-400/50 hover:bg-gray-300 transition-colors">
+            °F
+          </button>
+        </div>
         <p class="text-base text-gray-600 mt-1">${current.condition.text}</p>
-        <p class="text-sm text-gray-500 mt-1">Feels like ${current.feelslike_c}°C</p>
+        <p id="feelsLike" class="text-sm text-gray-500 mt-1">Feels like ${current.feelslike_c}°C</p>
       </div>
 
       <!-- Main Stats -->
       <div class="grid grid-cols-2 gap-3 mb-4">
-        
         <div class="p-4 bg-blue-50 rounded-xl text-center">
           <p class="text-xl font-bold">${current.humidity}%</p>
           <p class="text-xs text-gray-600">Humidity</p>
@@ -101,8 +102,7 @@ function renderWeatherCard(data) {
       </div>
 
       <!-- Extra Info -->
-      <div class="mt-4 p-4 bg-gray-100 rounded-xl text-sm space-y-1
-     shadow-inner shadow-gray-300/70 border border-gray-200">
+      <div class="mt-4 p-4 bg-gray-100 rounded-xl text-sm space-y-1 shadow-inner shadow-gray-300/70 border border-gray-200">
         <p><strong>Dew Point:</strong> ${current.dewpoint_c}°C</p>
         <p><strong>Wind Gust:</strong> ${current.gust_kph} km/h</p>
         <p><strong>UV Index:</strong> ${current.uv}</p>
@@ -112,6 +112,25 @@ function renderWeatherCard(data) {
   `;
 
   document.getElementById("todayWeather").innerHTML = html;
+  const toggleBtn = document.getElementById("toggleTemp");
+  const tempEl = document.getElementById("temp");
+  const feelsEl = document.getElementById("feelsLike");
+
+  let isCelsius = true;
+
+  toggleBtn.addEventListener("click", () => {
+    isCelsius = !isCelsius; // flip unit
+
+    tempEl.textContent = isCelsius
+      ? `${current.temp_c}°C`
+      : `${(current.temp_c * 9 / 5 + 32).toFixed(1)}°F`;
+
+    feelsEl.textContent = isCelsius
+      ? `Feels like ${current.feelslike_c}°C`
+      : `Feels like ${(current.feelslike_c * 9 / 5 + 32).toFixed(1)}°F`;
+
+    toggleBtn.textContent = isCelsius ? "°F" : "°C";
+  });
 }
 
 function renderForecastCards(data) {
@@ -142,7 +161,7 @@ function renderForecastCards(data) {
 
 let recentCities = JSON.parse(localStorage.getItem("recentCities")) || [];
 
-// Render on page load (if any data exists)
+// Render on page load
 renderRecent();
 
 // Toggle dropdown visibility
