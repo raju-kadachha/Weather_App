@@ -3,18 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Weather Dashboard</title>
+    <title>WeatherNow</title>
     <link href="./src/output.css" rel="stylesheet" />
   </head>
 
   <body class="bg-gray-50 text-gray-800">
     <!-- Header -->
     <header class="bg-white shadow-md py-4">
-      <h1 class="text-2xl font-bold text-blue-700 text-center tracking-wide">
-        WeatherNow
+      <h1
+        class="first-letter:text-amber-400 first-letter:font-bold text-2xl font-bold text-blue-700 text-center tracking-wide"
+      >
+        Weather
+        <span
+          class="first-letter:text-amber-400 first-letter:font-bold inline-block"
+          >Now</span
+        >
       </h1>
     </header>
 
+    <!-- MAIN Section  -->
     <main
       class="flex flex-col justify-center align-middle max-w-xl mx-auto mt-6 p-4"
     >
@@ -79,8 +86,10 @@
         </div>
       </section>
 
+      <!-- Section For Todays Weather Card  -->
       <section id="todayWeather"></section>
 
+      <!-- Section For 6 Days Weather Forecast -->
       <section
         id="forecastSection"
         class="grid gap-4 mt-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"

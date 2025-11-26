@@ -140,33 +140,55 @@ function renderForecastCards(data) {
   }
 }
 
-let recentCities = [];
+let recentCities = JSON.parse(localStorage.getItem("recentCities")) || [];
+
+// Render on page load (if any data exists)
+renderRecent();
+
 // Toggle dropdown visibility
 document.getElementById("recentToggle").addEventListener("click", () => {
   document.getElementById("recentList").classList.toggle("hidden");
 });
+
 // Add city to dropdown
 function addRecent(city) {
-  if (city === "") return; //return if input box is empty
+  if (city === "") return;
 
   if (!recentCities.includes(city)) {
     recentCities.unshift(city);
   }
 
-  // show box if not empty
-  document.getElementById("recentBox").classList.remove("hidden");
+  // Save to localStorage
+  localStorage.setItem("recentCities", JSON.stringify(recentCities));
 
-  // Render dropdown
+  renderRecent();
+}
+
+// Render dropdown
+function renderRecent() {
+  const recentBox = document.getElementById("recentBox");
   const list = document.getElementById("recentList");
+
+  if (recentCities.length === 0) {
+    recentBox.classList.add("hidden");
+    return;
+  }
+
+  // Show the box
+  recentBox.classList.remove("hidden");
+
   list.innerHTML = "";
+
   recentCities.forEach(c => {
     let li = document.createElement("li");
     li.textContent = c;
     li.className = "p-2 hover:bg-blue-100 cursor-pointer";
+
     li.onclick = () => {
-      fetchWeather(c);               // your existing function
-      list.classList.add("hidden");  // close dropdown
+      fetchWeather(c);
+      list.classList.add("hidden");
     };
+
     list.appendChild(li);
   });
 }
