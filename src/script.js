@@ -194,7 +194,7 @@ function renderForecastCards(data) {
   for (let i = 1; i < forecast.length; i++) {
     const day = forecast[i];
 
-    // Convert max/min temps based on global temperature mode
+    // Temp convert
     const max = isCelsius ? day.day.maxtemp_c : toF(day.day.maxtemp_c);
     const min = isCelsius ? day.day.mintemp_c : toF(day.day.mintemp_c);
     const unit = isCelsius ? "C" : "F";
@@ -207,13 +207,32 @@ function renderForecastCards(data) {
         <img src="${day.day.condition.icon}" class="w-14 mx-auto" />
         <p class="text-gray-700 mt-1">${day.day.condition.text}</p>
 
-        <div class="mt-2 text-base font-bold">
-          <span class="text-red-500 mr-2">↑ ${max}°${unit}</span>
-          <span class="text-blue-600">↓ ${min}°${unit}</span>
+        <!-- Temperature -->
+        <div class="mt-3 text-base font-bold flex justify-center gap-4">
+          <span class="flex items-center gap-1 text-red-500">
+            <img src="img/high-temperature.png" class="w-4 h-4" />${max}°${unit}
+          </span>
+          <span class="flex items-center gap-1 text-blue-600">
+            <img src="img/low-temperature.png" class="w-4 h-4" />${min}°${unit}
+          </span>
         </div>
-      </div>`;
+
+        <!-- Wind -->
+        <div class="mt-2 text-gray-700 flex justify-center gap-2 items-center">
+          <img src="img/wind.png" class="w-4 h-4" /> <span class="font-medium">${day.day.maxwind_kph} km/h</span>
+        </div>
+
+        <!-- Humidity -->
+        <div class="mt-1 text-gray-700 flex justify-center gap-2 items-center">
+          <img src="img/humidity.png" class="w-4 h-4" /> <span class="font-medium">${day.day.avghumidity}%</span>
+        </div>
+
+      </div>
+    `;
   }
 }
+
+
 
 
 // Recent Cities Logic
@@ -229,6 +248,7 @@ function addRecent(city) {
   if (!city || /^\d+(\.\d+)?,\d+(\.\d+)?$/.test(city)) return;
   if (!recentCities.includes(city)) recentCities.unshift(city);
 
+  //Set LocalStorage
   localStorage.setItem("recentCities", JSON.stringify(recentCities));
   renderRecent();
 }
