@@ -6,6 +6,11 @@ document.getElementById("searchBtn").addEventListener("click", () => {
   fetchWeather(searchBox.value);
 });
 
+document.querySelector("form").addEventListener("submit", e => {
+  e.preventDefault();
+  fetchWeather(searchBox.value);
+});
+
 // Location Button
 document.getElementById("locationBtn").addEventListener("click", () => {
   getCurrentCity();
@@ -21,16 +26,17 @@ async function fetchWeather(city) {
 
     let response;
     try {
+      // fetch data 
       response = await fetch(
         `https://api.weatherapi.com/v1/forecast.json?key=6914a1322ff148bfbc3124249252311&q=${city}&days=7`
       );
     } catch {
-      throw new Error("fetch-failed");
+      return notify("fetch-failed", "❌");
     }
 
     const data = await response.json();
 
-    if (data.error) return notify("City not found. Please try again.", "⚠️");
+    if (data.error) return notify("City not found.", "⚠️");
 
     renderWeatherCard(data);
     renderForecastCards(data);
@@ -54,19 +60,25 @@ async function getCurrentCity() {
   if (!navigator.geolocation) return notify("Your device does not support location.", "📵");
 
   navigator.geolocation.getCurrentPosition(
-    async pos => {
+    (pos) => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
       fetchWeather(`${lat},${lon}`);
     },
 
-    error => {
-      const errorMap = {
-        1: "Location access denied. Enable it to continue.",
-        2: "Unable to access your location.",
-        3: "Location request timed out."
-      };
-      notify(errorMap[error.code] || "Unable to access your location.", "📍");
+    (err) => {
+      if (err.code === 1) {
+        notify("Location access denied. Enable it to continue.", "📍");
+      }
+      else if (err.code === 2) {
+        notify("Unable to access your location.", "📍");
+      }
+      else if (err.code === 3) {
+        notify("Location request timed out.", "⏳");
+      }
+      else {
+        notify("Unable to access your location.", "📍");
+      }
     }
   );
 }
@@ -114,22 +126,22 @@ function renderWeatherCard(data) {
 
       <!-- Main Stats (unchanged) -->
       <div class="grid grid-cols-2 gap-3 mb-4">
-        <div class="p-4 bg-blue-50 rounded-xl text-center">
+        <div class="p-4 bg-blue-100 rounded-xl text-center">
           <p class="text-xl font-bold">${current.humidity}%</p>
           <p class="text-xs text-gray-600">Humidity</p>
         </div>
 
-        <div class="p-4 bg-blue-50 rounded-xl text-center">
+        <div class="p-4  bg-blue-100 rounded-xl text-center">
           <p class="text-xl font-bold">${current.wind_kph} km/h</p>
           <p class="text-xs text-gray-600">Wind (${current.wind_dir})</p>
         </div>
 
-        <div class="p-4 bg-blue-50 rounded-xl text-center">
+        <div class="p-4 bg-blue-100 rounded-xl text-center">
           <p class="text-xl font-bold">${current.vis_km} km</p>
           <p class="text-xs text-gray-600">Visibility</p>
         </div>
 
-        <div class="p-4 bg-blue-50 rounded-xl text-center">
+        <div class="p-4 bg-blue-100 rounded-xl text-center">
           <p class="text-xl font-bold">${current.pressure_mb} mb</p>
           <p class="text-xs text-gray-600">Pressure</p>
         </div>
