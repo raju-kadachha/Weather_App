@@ -30,18 +30,19 @@ async function fetchWeather(city) {
       response = await fetch(
         `https://api.weatherapi.com/v1/forecast.json?key=6914a1322ff148bfbc3124249252311&q=${city}&days=7`
       );
-    } catch {
-      return notify("fetch-failed", "❌");
+    } catch (e) {
+      //not able to fetch data
+      return notify(e, "❌");
     }
 
     const data = await response.json();
-
+    //wrong city name
     if (data.error) return notify("City not found.", "⚠️");
 
-    renderWeatherCard(data);
-    renderForecastCards(data);
-
-    addRecent(city);
+    renderWeatherCard(data); //Today Forecast
+    renderForecastCards(data); // 6-Days Forecase
+    addRecent(city); // recent cities drop down
+    extremeAlerts(data.current); //custom alerts
     searchBox.value = "";
 
   } catch (err) {
@@ -301,7 +302,7 @@ function notify(message, icon = "") {
     hover:bg-gray-700 active:scale-95 transition-all
     text-sm shadow-sm self-end
   `;
-
+  //Add Eventlistener for Ok
   btn.onclick = () => {
     document.querySelector("main").classList.remove("blur-[1px]");
     note.remove();
@@ -313,4 +314,43 @@ function notify(message, icon = "") {
   document.body.appendChild(note);
 
   document.querySelector("main").classList.add("blur-[1px]");
+}
+
+function extremeAlerts(current) {
+
+  // Heat Alert
+  if (current.temp_c >= 40) {
+    notify(`⚠️ Heat Alert! Temperature is ${current.temp_c}°C`, "🔥");
+  }
+
+  // Cold Alert
+  if (current.temp_c <= 0) {
+    notify(`❄️ Cold Alert! Temperature is ${current.temp_c}°C`, "🧊");
+  }
+
+  // High Wind Alert
+  if (current.wind_kph >= 50) {
+    notify(`🌬️ Wind Alert! Speed is ${current.wind_kph} km/h`, "💨");
+  }
+
+  // Heavy Rain Alert
+  if (current.precip_mm >= 20) {
+    notify(`🌧️ Heavy Rain Alert! Precipitation is ${current.precip_mm} mm`, "☔");
+  }
+
+  // High UV Index Alert
+  if (current.uv >= 8) {
+    notify(`☀️ UV Alert! UV index is ${current.uv}`, "🕶️");
+  }
+
+  // Freezing Wind Alert
+  if (current.temp_c <= 0 && current.wind_kph >= 20) {
+    notify(`🧊 Freezing Wind! Temp: ${current.temp_c}°C, Wind: ${current.wind_kph} km/h`, "❄️");
+  }
+
+  // High Humidity Alert
+  if (current.humidity >= 90) {
+    notify(`💧 High Humidity! ${current.humidity}%`, "💦");
+  }
+
 }
