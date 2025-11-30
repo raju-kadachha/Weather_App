@@ -25,7 +25,7 @@ async function fetchWeather(city) {
     searchBtn.disabled = true;
     locationBtn.disabled = true;
 
-    if (city.trim() === "") return notify("Please enter a city name.");
+    if (city.trim() === "") return notify("Please enter a city name.", "✏️"); //empty textbox
     if (!navigator.onLine) return notify("You're offline. Check your internet.", "📡");
 
     let response;
@@ -49,7 +49,8 @@ async function fetchWeather(city) {
     extremeAlerts(data.current); //custom alerts
     searchBox.value = "";
 
-  } catch (err) {
+  } catch (err) { //Handle Errors
+
     if (err.message === "fetch-failed") {
       notify("Unable to connect. Please check your internet.", "🌐");
     } else {
@@ -64,30 +65,22 @@ async function fetchWeather(city) {
 
 
 
-// Fetch Current Location → Then Fetch Weather
+// Fetch Current Location
 async function getCurrentCity() {
-  if (!navigator.geolocation) return notify("Your device does not support location.", "📵");
 
+  // Get user's current location: run successCallback if allowed, errorCallback if denied or fails
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
+
+      // Fetch Weather using lat and lon
       fetchWeather(`${lat},${lon}`);
     },
 
+    // Handle location errors
     (err) => {
-      if (err.code === 1) {
-        notify("Location access denied. Enable it to continue.", "📍");
-      }
-      else if (err.code === 2) {
-        notify("Unable to access your location.", "📍");
-      }
-      else if (err.code === 3) {
-        notify("Location request timed out.", "⏳");
-      }
-      else {
-        notify("Unable to access your location.", "📍");
-      }
+      notify("Unable to access your location. 📍");
     }
   );
 }
@@ -184,26 +177,24 @@ function renderWeatherCard(data) {
   };
 }
 
-
-
-
-// Global temperature mode (true = C, false = F)
+//true = C, false = F
 let isCelsius = true;
-
-// Convert Celsius → Fahrenheit
+// Convert Celsius to Fahrenheit
 function toF(c) {
   return (c * 9 / 5 + 32).toFixed(1);
 }
 // 6-day Forecast Cards
 function renderForecastCards(data) {
+  //7-Days forecast array of objects
   const forecast = data.forecast.forecastday;
   const container = document.getElementById("forecastSection");
   container.innerHTML = "";
 
+  // Loop through each upcoming day in the forecast
   for (let i = 1; i < forecast.length; i++) {
     const day = forecast[i];
 
-    // Temp convert
+    // Temperature convert 
     const max = isCelsius ? day.day.maxtemp_c : toF(day.day.maxtemp_c);
     const min = isCelsius ? day.day.mintemp_c : toF(day.day.mintemp_c);
     const unit = isCelsius ? "C" : "F";
@@ -249,40 +240,43 @@ let recentCities = JSON.parse(localStorage.getItem("recentCities")) || [];
 
 renderRecent();
 
+// Toggle the visibility of the recent cities list 
 document.getElementById("recentToggle").addEventListener("click", () => {
   document.getElementById("recentList").classList.toggle("hidden");
 });
 
 function addRecent(city) {
-  if (!city || /^\d+(\.\d+)?,\d+(\.\d+)?$/.test(city)) return;
+  if (!city || /^\d+(\.\d+)?,\d+(\.\d+)?$/.test(city)) return;  //check for lat and lon
+  //if city is not in List add it to list
   if (!recentCities.includes(city)) recentCities.unshift(city);
 
   //Set LocalStorage
   localStorage.setItem("recentCities", JSON.stringify(recentCities));
-  renderRecent();
+  renderRecent(); //render dropdown
 }
 
 function renderRecent() {
+  // Container for recent searches
   const recentBox = document.getElementById("recentBox");
   const list = document.getElementById("recentList");
 
+  // Hide if empty
   if (!recentCities.length) return recentBox.classList.add("hidden");
-  recentBox.classList.remove("hidden");
+  recentBox.classList.remove("hidden"); // Show container
 
+  // Clear previous items
   list.innerHTML = "";
   recentCities.forEach((c) => {
     const li = document.createElement("li");
     li.textContent = c;
     li.className = "p-2 hover:bg-blue-100 cursor-pointer";
     li.onclick = () => {
-      fetchWeather(c);
-      list.classList.add("hidden");
+      fetchWeather(c);  // Fetch weather when clicked
+      list.classList.add("hidden"); // Close list
     };
-    list.appendChild(li);
+    list.appendChild(li); // Add to list
   });
 }
-
-
 
 // Custom Notification
 function notify(message, icon = "") {
@@ -291,18 +285,18 @@ function notify(message, icon = "") {
     fixed inset-0 flex items-center justify-center
     bg-black/40 backdrop-blur-sm z-20 animate-fadeIn
   `;
-
   const box = document.createElement("div");
   box.className = `
     bg-white/90 backdrop-blur-xl text-gray-900
     font-medium px-6 py-5 rounded-2xl shadow-xl border border-gray-200
     w-[90%] max-w-sm text-center flex flex-col gap-4
   `;
-
+  //Notification Text
   const msg = document.createElement("div");
   msg.className = "text-lg font-semibold";
-  msg.textContent = `${icon} ${message}`;
+  msg.textContent = `${icon} ${message}`; //icon + text
 
+  //Notification Button
   const btn = document.createElement("button");
   btn.textContent = "OK";
   btn.className = `
@@ -310,17 +304,20 @@ function notify(message, icon = "") {
     hover:bg-gray-700 active:scale-95 transition-all
     text-sm shadow-sm self-end
   `;
+
   //Add Eventlistener for Ok
   btn.onclick = () => {
     document.querySelector("main").classList.remove("blur-[1px]");
     note.remove();
   };
 
+  //Add to DOM
   box.appendChild(msg);
   box.appendChild(btn);
   note.appendChild(box);
   document.body.appendChild(note);
 
+  //Blur Background
   document.querySelector("main").classList.add("blur-[1px]");
 }
 
@@ -360,5 +357,4 @@ function extremeAlerts(current) {
   if (current.humidity >= 90) {
     notify(`💧 High Humidity! ${current.humidity}%`, "💦");
   }
-
 }
