@@ -21,6 +21,10 @@ document.getElementById("locationBtn").addEventListener("click", () => {
 // MAIN FUNCTION — Fetch Weather
 async function fetchWeather(city) {
   try {
+    // Disable buttons
+    searchBtn.disabled = true;
+    locationBtn.disabled = true;
+
     if (city.trim() === "") return notify("Please enter a city name.");
     if (!navigator.onLine) return notify("You're offline. Check your internet.", "📡");
 
@@ -51,6 +55,10 @@ async function fetchWeather(city) {
     } else {
       notify("Unable to load weather data.", "❌");
     }
+  } finally {
+    // Enable buttons again
+    searchBtn.disabled = false;
+    locationBtn.disabled = false;
   }
 }
 
