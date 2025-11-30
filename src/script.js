@@ -1,59 +1,87 @@
-//Get DOM Elements
+// DOM Elements
 const searchBox = document.getElementById("search");
-//Added click event to search button
-document.getElementById("searchBtn").addEventListener("click", () => { fetchWeather(searchBox.value) });
 
-document.getElementById("locationBtn").addEventListener("click", async () => {
-  //using lat and  lon we are fetching data
-  getCurrentCity()
+// Search Button
+document.getElementById("searchBtn").addEventListener("click", () => {
+  fetchWeather(searchBox.value);
 });
 
-//MAIN Function
+// Location Button
+document.getElementById("locationBtn").addEventListener("click", () => {
+  getCurrentCity();
+});
+
+
+
+// MAIN FUNCTION — Fetch Weather
 async function fetchWeather(city) {
   try {
-    // Fetching Data from API 
-    if (city.trim() === "") return alert("Please write city name");
-    const rowData = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=6914a1322ff148bfbc3124249252311&q=${city}&days=7`);
-    let data = await rowData.json();
+    if (city.trim() === "") return notify("Please enter a city name.");
+    if (!navigator.onLine) return notify("You're offline. Check your internet.", "📡");
 
-    if (data.error) {
-      alert(data.error.message);   // No matching location found
-      return null;
+    let response;
+    try {
+      response = await fetch(
+        `https://api.weatherapi.com/v1/forecast.json?key=6914a1322ff148bfbc3124249252311&q=${city}&days=7`
+      );
+    } catch {
+      throw new Error("fetch-failed");
     }
+
+    const data = await response.json();
+
+    if (data.error) return notify("City not found. Please try again.", "⚠️");
+
     renderWeatherCard(data);
-    renderForecastCards(data)
-    addRecent(searchBox.value.trim());
+    renderForecastCards(data);
+
+    addRecent(city);
     searchBox.value = "";
-  }
-  catch (e) {
-    console.log("Not Able to get Data.\nPlease, check your Internet.")
+
+  } catch (err) {
+    if (err.message === "fetch-failed") {
+      notify("Unable to connect. Please check your internet.", "🌐");
+    } else {
+      notify("Unable to load weather data.", "❌");
+    }
   }
 }
 
-//Fetch Current Location City Name
+
+
+// Fetch Current Location → Then Fetch Weather
 async function getCurrentCity() {
-  return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      try {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
+  if (!navigator.geolocation) return notify("Your device does not support location.", "📵");
 
-        resolve(await fetchWeather(`${lat},${lon}`));
-      }
-      catch (error) {
-        reject("Error fetching city name");
-      }
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      fetchWeather(`${lat},${lon}`);
     },
-      () => reject("Location permission denied"));
-  });
+
+    error => {
+      const errorMap = {
+        1: "Location access denied. Enable it to continue.",
+        2: "Unable to access your location.",
+        3: "Location request timed out."
+      };
+      notify(errorMap[error.code] || "Unable to access your location.", "📍");
+    }
+  );
 }
 
+
+
+
+// Render Current Weather Card
 function renderWeatherCard(data) {
   const { location, current } = data;
+
   const html = `
     <div class="max-w-md mx-auto mt-6 p-6 bg-white rounded-2xl shadow-md border border-gray-200 
-            animate-[fadeInUp_0.3s_ease-out]">
-      
+         animate-[fadeInUp_0.3s_ease-out]">
+
       <!-- Header -->
       <div class="flex items-center justify-between mb-4">
         <div>
@@ -63,22 +91,28 @@ function renderWeatherCard(data) {
         <img src="${current.condition.icon}" alt="${current.condition.text}" class="w-14 h-14" />
       </div>
 
-      <!-- Temperature with toggle -->
+      <!-- Temperature -->
       <div class="text-center mb-6">
         <div class="flex items-center justify-center gap-4 mb-2">
-          <p id="temp" class="text-5xl font-bold text-blue-700">${current.temp_c}°C</p>
-          
-          <!-- Toggle Button -->
+          <p id="temp" class="text-5xl font-bold text-blue-700">
+            ${isCelsius ? current.temp_c : toF(current.temp_c)}°${isCelsius ? "C" : "F"}
+          </p>
+
           <button id="toggleTemp"
-            class="px-4 py-2 pr-5 bg-gray-200 rounded-full text-sm font-medium shadow-inner shadow-gray-400/50 hover:bg-gray-300 transition-colors">
-            °F
+            class="px-4 py-2 bg-gray-200 rounded-full text-sm font-medium 
+            shadow-inner shadow-gray-400/50 hover:bg-gray-300 transition-colors">
+            ${isCelsius ? "°F" : "°C"}
           </button>
         </div>
+
         <p class="text-base text-gray-600 mt-1">${current.condition.text}</p>
-        <p id="feelsLike" class="text-sm text-gray-500 mt-1">Feels like ${current.feelslike_c}°C</p>
+
+        <p id="feelsLike" class="text-sm text-gray-500 mt-1">
+          Feels like ${isCelsius ? current.feelslike_c : toF(current.feelslike_c)}°${isCelsius ? "C" : "F"}
+        </p>
       </div>
 
-      <!-- Main Stats -->
+      <!-- Main Stats (unchanged) -->
       <div class="grid grid-cols-2 gap-3 mb-4">
         <div class="p-4 bg-blue-50 rounded-xl text-center">
           <p class="text-xl font-bold">${current.humidity}%</p>
@@ -101,9 +135,14 @@ function renderWeatherCard(data) {
         </div>
       </div>
 
-      <!-- Extra Info -->
-      <div class="mt-4 p-4 bg-gray-100 rounded-xl text-sm space-y-1 shadow-inner shadow-gray-300/70 border border-gray-200">
-        <p><strong>Dew Point:</strong> ${current.dewpoint_c}°C</p>
+      <!-- Extra Info with dew point updated -->
+      <div class="mt-4 p-4 bg-gray-100 rounded-xl text-sm space-y-1 
+        shadow-inner shadow-gray-300/70 border border-gray-200">
+
+        <p><strong>Dew Point:</strong> 
+          ${isCelsius ? current.dewpoint_c : toF(current.dewpoint_c)}°${isCelsius ? "C" : "F"}
+        </p>
+
         <p><strong>Wind Gust:</strong> ${current.gust_kph} km/h</p>
         <p><strong>UV Index:</strong> ${current.uv}</p>
         <p><strong>Updated:</strong> ${current.last_updated}</p>
@@ -112,102 +151,134 @@ function renderWeatherCard(data) {
   `;
 
   document.getElementById("todayWeather").innerHTML = html;
+
+  // Toggle button logic
   const toggleBtn = document.getElementById("toggleTemp");
-  const tempEl = document.getElementById("temp");
-  const feelsEl = document.getElementById("feelsLike");
 
-  let isCelsius = true;
+  toggleBtn.onclick = () => {
+    isCelsius = !isCelsius; // Flip unit mode
 
-  toggleBtn.addEventListener("click", () => {
-    isCelsius = !isCelsius; // flip unit
-
-    tempEl.textContent = isCelsius
-      ? `${current.temp_c}°C`
-      : `${(current.temp_c * 9 / 5 + 32).toFixed(1)}°F`;
-
-    feelsEl.textContent = isCelsius
-      ? `Feels like ${current.feelslike_c}°C`
-      : `Feels like ${(current.feelslike_c * 9 / 5 + 32).toFixed(1)}°F`;
-
-    toggleBtn.textContent = isCelsius ? "°F" : "°C";
-  });
+    renderWeatherCard(data);     // Rerender TODAY values
+    renderForecastCards(data);   // Rerender FORECAST
+  };
 }
 
+
+
+
+// Global temperature mode (true = C, false = F)
+let isCelsius = true;
+
+// Convert Celsius → Fahrenheit
+function toF(c) {
+  return (c * 9 / 5 + 32).toFixed(1);
+}
+// 6-day Forecast Cards
 function renderForecastCards(data) {
   const forecast = data.forecast.forecastday;
-
   const container = document.getElementById("forecastSection");
   container.innerHTML = "";
 
   for (let i = 1; i < forecast.length; i++) {
     const day = forecast[i];
 
-    const card = `
+    // Convert max/min temps based on global temperature mode
+    const max = isCelsius ? day.day.maxtemp_c : toF(day.day.maxtemp_c);
+    const min = isCelsius ? day.day.mintemp_c : toF(day.day.mintemp_c);
+    const unit = isCelsius ? "C" : "F";
+
+    container.innerHTML += `
       <div class="bg-white rounded-xl shadow p-4 text-center border border-gray-200
-     transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-400">
+        transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-400">
+
         <h3 class="text-lg font-semibold mb-1">${day.date}</h3>
         <img src="${day.day.condition.icon}" class="w-14 mx-auto" />
         <p class="text-gray-700 mt-1">${day.day.condition.text}</p>
 
         <div class="mt-2 text-base font-bold">
-          <span class="text-red-500 mr-2">↑ ${day.day.maxtemp_c}°C</span>
-          <span class="text-blue-600">↓ ${day.day.mintemp_c}°C</span>
+          <span class="text-red-500 mr-2">↑ ${max}°${unit}</span>
+          <span class="text-blue-600">↓ ${min}°${unit}</span>
         </div>
-      </div>
-    `;
-    container.innerHTML += card;
+      </div>`;
   }
 }
 
+
+// Recent Cities Logic
 let recentCities = JSON.parse(localStorage.getItem("recentCities")) || [];
 
-// Render on page load
 renderRecent();
 
-// Toggle dropdown visibility
 document.getElementById("recentToggle").addEventListener("click", () => {
   document.getElementById("recentList").classList.toggle("hidden");
 });
 
-// Add city to dropdown
 function addRecent(city) {
-  if (city === "") return;
+  if (!city || /^\d+(\.\d+)?,\d+(\.\d+)?$/.test(city)) return;
+  if (!recentCities.includes(city)) recentCities.unshift(city);
 
-  if (!recentCities.includes(city)) {
-    recentCities.unshift(city);
-  }
-
-  // Save to localStorage
   localStorage.setItem("recentCities", JSON.stringify(recentCities));
-
   renderRecent();
 }
 
-// Render dropdown
 function renderRecent() {
   const recentBox = document.getElementById("recentBox");
   const list = document.getElementById("recentList");
 
-  if (recentCities.length === 0) {
-    recentBox.classList.add("hidden");
-    return;
-  }
-
-  // Show the box
+  if (!recentCities.length) return recentBox.classList.add("hidden");
   recentBox.classList.remove("hidden");
 
   list.innerHTML = "";
-
-  recentCities.forEach(c => {
-    let li = document.createElement("li");
+  recentCities.forEach((c) => {
+    const li = document.createElement("li");
     li.textContent = c;
     li.className = "p-2 hover:bg-blue-100 cursor-pointer";
-
     li.onclick = () => {
       fetchWeather(c);
       list.classList.add("hidden");
     };
-
     list.appendChild(li);
   });
+}
+
+
+
+// Custom Notification
+function notify(message, icon = "") {
+  const note = document.createElement("div");
+  note.className = `
+    fixed inset-0 flex items-center justify-center
+    bg-black/40 backdrop-blur-sm z-20 animate-fadeIn
+  `;
+
+  const box = document.createElement("div");
+  box.className = `
+    bg-white/90 backdrop-blur-xl text-gray-900
+    font-medium px-6 py-5 rounded-2xl shadow-xl border border-gray-200
+    w-[90%] max-w-sm text-center flex flex-col gap-4
+  `;
+
+  const msg = document.createElement("div");
+  msg.className = "text-lg font-semibold";
+  msg.textContent = `${icon} ${message}`;
+
+  const btn = document.createElement("button");
+  btn.textContent = "OK";
+  btn.className = `
+    w-1/4 text-white bg-gray-500 px-3 py-1.5 rounded-md
+    hover:bg-gray-700 active:scale-95 transition-all
+    text-sm shadow-sm self-end
+  `;
+
+  btn.onclick = () => {
+    document.querySelector("main").classList.remove("blur-[1px]");
+    note.remove();
+  };
+
+  box.appendChild(msg);
+  box.appendChild(btn);
+  note.appendChild(box);
+  document.body.appendChild(note);
+
+  document.querySelector("main").classList.add("blur-[1px]");
 }
