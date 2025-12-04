@@ -63,11 +63,12 @@ async function fetchWeather(city) {
   }
 }
 
-
-
 // Fetch Current Location
 async function getCurrentCity() {
 
+  if (!(/Edg/i.test(navigator.userAgent))) {
+    notify(" Your browser may reduce location accuracy. Try Microsoft Edge for better results.", "⚠️");
+  }
   // Get user's current location: run successCallback if allowed, errorCallback if denied or fails
   navigator.geolocation.getCurrentPosition(
     (pos) => {

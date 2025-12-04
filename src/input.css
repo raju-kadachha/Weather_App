@@ -1,4 +1,6 @@
 @import "tailwindcss";
+
+/* renderWeatherCard Rendering Animation */
 @keyframes fadeInUp {
   from {
     opacity: 0;
