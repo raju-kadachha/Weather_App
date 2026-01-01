@@ -4,10 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WeatherNow</title>
+    <link rel="icon" href="img/favicon.png" type="image/png" sizes="32x32" />
     <link href="./src/output.css" rel="stylesheet" />
   </head>
 
-  <body class="bg-gray-50 text-gray-800">
+  <body class="text-gray-800 bg-[#f3f4f6]">
     <!-- Header -->
     <header class="bg-white shadow-md py-4">
       <h1
@@ -24,7 +25,7 @@
     <main
       class="flex flex-col justify-center align-middle max-w-xl mx-auto mt-6 p-4"
     >
-      <!-- Search UI card -->
+      <!-- Search Section -->
       <section
         class="bg-white p-5 rounded-2xl shadow-md border border-gray-200 space-y-5"
       >
@@ -89,10 +90,18 @@
       <section id="todayWeather"></section>
 
       <!-- Section For 6 Days Weather Forecast -->
-      <section
-        id="forecastSection"
-        class="grid gap-4 mt-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      ></section>
+      <section>
+        <h2
+          id="forecastHeading"
+          class="hidden mt-6 text-center mx-4 p-4 bg-white rounded-2xl shadow-lg border border-gray-300 text-xl font-bold text-gray-800"
+        >
+          Forecast for the Coming Days
+        </h2>
+        <section
+          id="forecastSection"
+          class="grid gap-4 mt-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        ></section>
+      </section>
     </main>
     <script src="src/script.js"></script>
   </body>

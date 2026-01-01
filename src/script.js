@@ -1,8 +1,9 @@
-// DOM Elements
+//Select DOM Elements
 const searchBox = document.getElementById("search");
-
-// Search Button
-document.getElementById("searchBtn").addEventListener("click", () => {
+const searchBtn = document.getElementById("searchBtn");
+const locationBtn = document.getElementById("locationBtn");
+// Search Button clickk
+searchBtn.addEventListener("click", () => {
   fetchWeather(searchBox.value);
 });
 
@@ -12,7 +13,7 @@ document.querySelector("form").addEventListener("submit", e => {
 });
 
 // Location Button
-document.getElementById("locationBtn").addEventListener("click", () => {
+locationBtn.addEventListener("click", () => {
   getCurrentCity();
 });
 
@@ -20,56 +21,64 @@ document.getElementById("locationBtn").addEventListener("click", () => {
 
 // MAIN FUNCTION — Fetch Weather
 async function fetchWeather(city) {
+  // empty input box
+  city = city.trim().toLowerCase();
+  if (city === "") {
+    notify("Please enter a city name.", "✏️");
+    return;
+  }
+  //check internet connection
+  if (!navigator.onLine) {
+    notify("You're offline. Check your internet.", "📡");
+    return;
+  }
+
+  // Disable buttons
+  searchBtn.disabled = true;
+  locationBtn.disabled = true;
+
+  // fetch data
   try {
-    // Disable buttons
-    searchBtn.disabled = true;
-    locationBtn.disabled = true;
+    const response = await fetch(
+      `https://api.weatherapi.com/v1/forecast.json?key=84db22e8d3a34f51a5925909260101&q=${city}&days=7`
+    );
 
-    if (city.trim() === "") return notify("Please enter a city name.", "✏️"); //empty textbox
-    if (!navigator.onLine) return notify("You're offline. Check your internet.", "📡");
-
-    let response;
-    try {
-      // fetch data 
-      response = await fetch(
-        `https://api.weatherapi.com/v1/forecast.json?key=6914a1322ff148bfbc3124249252311&q=${city}&days=7`
-      );
-    } catch (e) {
-      //not able to fetch data
-      return notify(e, "❌");
+    //not able to fetch data
+    if (!response.ok) {
+      notify("Unable to fetch weather data.", "❌");
+      return;
     }
 
     const data = await response.json();
-    //wrong city name
-    if (data.error) return notify("City not found.", "⚠️");
 
-    renderWeatherCard(data); //Today Forecast
-    renderForecastCards(data); // 6-Days Forecase
-    addRecent(city); // recent cities drop down
-    extremeAlerts(data.current); //custom alerts
+    //wrong city name
+    if (data.error) {
+      notify("City not found.", "⚠️");
+      return;
+    }
+
+
+    renderWeatherCard(data);
+    renderForecastCards(data);
+    addRecent(city);
+    extremeAlerts(data.current);
+    applyWeatherBackground(data.current);
     searchBox.value = "";
 
-  } catch (err) { //Handle Errors
-
-    if (err.message === "fetch-failed") {
-      notify("Unable to connect. Please check your internet.", "🌐");
-    } else {
-      notify("Unable to load weather data.", "❌");
-    }
+  } catch (err) {
+    // unexpected errors
+    notify("Something went wrong. Please try again.", "❌");
   } finally {
-    // Enable buttons again
+    // Enable Buttons
     searchBtn.disabled = false;
     locationBtn.disabled = false;
   }
 }
 
+
 // Fetch Current Location
 async function getCurrentCity() {
-
-  if (!(/Edg/i.test(navigator.userAgent))) {
-    notify(" Your browser may reduce location accuracy. Try Microsoft Edge for better results.", "⚠️");
-  }
-  // Get user's current location: run successCallback if allowed, errorCallback if denied or fails
+  // Get current location
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const lat = pos.coords.latitude;
@@ -85,9 +94,6 @@ async function getCurrentCity() {
     }
   );
 }
-
-
-
 
 // Render Current Weather Card
 function renderWeatherCard(data) {
@@ -180,19 +186,20 @@ function renderWeatherCard(data) {
 
 //true = C, false = F
 let isCelsius = true;
-// Convert Celsius to Fahrenheit
+// utility clas Convert Celsius to Fahrenheit
 function toF(c) {
   return (c * 9 / 5 + 32).toFixed(1);
 }
-// 6-day Forecast Cards
+// future forecast cards
 function renderForecastCards(data) {
-  //7-Days forecast array of objects
+  //Forecast data
+  document.getElementById("forecastHeading").classList.remove("hidden");
   const forecast = data.forecast.forecastday;
   const container = document.getElementById("forecastSection");
   container.innerHTML = "";
 
-  // Loop through each upcoming day in the forecast
-  for (let i = 1; i < forecast.length; i++) {
+  // Loop through each upcoming day in the forecast - max 6
+  for (let i = 1; i < Math.min(forecast.length, 7); i++) {
     const day = forecast[i];
 
     // Temperature convert 
@@ -232,9 +239,6 @@ function renderForecastCards(data) {
     `;
   }
 }
-
-
-
 
 // Recent Cities Logic
 let recentCities = JSON.parse(localStorage.getItem("recentCities")) || [];
@@ -358,4 +362,26 @@ function extremeAlerts(current) {
   if (current.humidity >= 90) {
     notify(`💧 High Humidity! ${current.humidity}%`, "💦");
   }
+}
+
+function applyWeatherBackground(current) {
+  const body = document.body;
+  const temp = current.temp_c;
+  const condition = current.condition.text.toLowerCase();
+
+  let bgColor = "#f3f4f6"; // default color
+  //include check if string has that word or not
+  if (condition.includes("rain") || condition.includes("drizzle")) {
+    bgColor = temp <= 0 ? "#60a5fa" : "#bfdbfe";
+  } else if (condition.includes("snow")) {
+    bgColor = "#e0f2fe";
+  } else if (condition.includes("cloud")) {
+    bgColor = temp <= 0 ? "#c7d2fe" : "#dbeafe";
+  } else if (condition.includes("mist") || condition.includes("fog")) {
+    bgColor = "#e5e7eb";
+  } else if (condition.includes("sun") || condition.includes("clear")) {
+    bgColor = temp >= 35 ? "#fde68a" : "#fef3c7";
+  }
+
+  body.style.background = bgColor;
 }
